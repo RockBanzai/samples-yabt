@@ -1,5 +1,6 @@
 import { KeyValue } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
 import { BacklogItemListGetRequest } from '@core/models/backlog-item/list/BacklogItemListGetRequest';
 import { CurrentUserRelations } from '@core/models/backlog-item/list/CurrentUserRelations';
 import { BacklogItemType } from '@core/models/common/BacklogItemType';
@@ -14,11 +15,25 @@ import { FilterBarComponentBase } from './filter-bar-base.component';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilterBarComponent extends FilterBarComponentBase<BacklogItemListGetRequest> implements OnInit, OnDestroy {
+	private static readonly stubFilterStructure: Partial<BacklogItemListGetRequest> = {
+		currentUserRelation: undefined,
+		type: undefined,
+		tags: undefined,
+		search: undefined,
+		assignedUserId: undefined,
+	};
+
+	constructor(fb: FormBuilder) {
+		super(fb, FilterBarComponent.stubFilterStructure);
+	}
+
 	ngOnInit(): void {
 		super.ngOnInit();
 
 		this.subscription.add(
-			this.formGroup.controls.search.valueChanges.pipe(debounceTime(400), distinctUntilChanged()).subscribe(_ => this.applyFilter())
+			this.formGroup.controls.search.valueChanges
+				.pipe(debounceTime(400), distinctUntilChanged())
+				.subscribe(_ => this.applyFilter('search'))
 		);
 	}
 
@@ -39,7 +54,7 @@ export class FilterBarComponent extends FilterBarComponentBase<BacklogItemListGe
 	setModeOption(value: string): void {
 		let key: keyof typeof CurrentUserRelations = !isNil(value) ? (value as keyof typeof CurrentUserRelations) : 'none';
 		this.formGroup.patchValue({ currentUserRelation: key });
-		this.applyFilter();
+		this.applyFilter('mode');
 	}
 
 	get typeText(): BacklogItemType | 'Type' {
@@ -48,7 +63,7 @@ export class FilterBarComponent extends FilterBarComponentBase<BacklogItemListGe
 	setType(value: keyof typeof BacklogItemType | unknown): void {
 		let key: keyof typeof BacklogItemType = !isNil(value) ? (value as keyof typeof BacklogItemType) : 'unknown';
 		this.formGroup.patchValue({ type: key });
-		this.applyFilter();
+		this.applyFilter('type');
 	}
 	// A workaround to iterate through the enum values in HTML template
 	get backlogItemType(): typeof BacklogItemType {

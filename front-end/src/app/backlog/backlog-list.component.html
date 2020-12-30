@@ -1,6 +1,6 @@
-<filter-bar [(filter)]="filter"></filter-bar>
+<filter-bar [filter]="filter$ | async"></filter-bar>
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="number" matSortDirection="desc">
+<mat-table [dataSource]="dataSource" matSort matSortDisableClear>
 
 	<ng-container matColumnDef="number">
 		<mat-header-cell *matHeaderCellDef mat-sort-header> No. </mat-header-cell>

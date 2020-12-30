@@ -11,19 +11,20 @@ export class FilterBarComponentBase<TFilter extends ListRequest> implements OnIn
 
 	// The filter must be initialised. Otherwise the whole filtering is going south
 	@Input()
-	set filter(value: Partial<TFilter>) {
-		this._filter = value;
+	set filter(value: Partial<TFilter> | null) {
+		this._filter = value || {};
 	}
 	@Output() filterChange = new EventEmitter<Partial<TFilter>>();
 
 	formGroup!: FormGroupTyped<TFilter>;
 
-	constructor(private fb: FormBuilder) {}
+	constructor(private fb: FormBuilder, private stubFilterStructure: Partial<TFilter>) {}
 
 	ngOnInit(): void {
 		this.formGroup = this.fb.group(
-			Object.keys(this._filter).reduce(
-				(prev, curr) => Object.assign(prev, { [curr]: this._filter[curr as keyof TFilter] instanceof Array ? [] : null }),
+			Object.keys(this.stubFilterStructure).reduce(
+				(prev, curr) =>
+					Object.assign(prev, { [curr]: this.stubFilterStructure[curr as keyof TFilter] instanceof Array ? [] : null }),
 				{}
 			)
 		) as FormGroupTyped<TFilter>;
@@ -34,19 +35,17 @@ export class FilterBarComponentBase<TFilter extends ListRequest> implements OnIn
 	}
 
 	protected setFilter(newValues: TFilter) {
-		if (this._filter) {
-			newValues = Object.assign({}, this._filter, newValues);
-		}
-		this.formGroup.setValue(newValues);
-		this.applyFilter();
+		if (!!this.formGroup) this.formGroup.setValue({ ...this.stubFilterStructure, ...newValues });
+		this.applyFilter('set new');
 	}
 
 	protected resetFilter(newValues: TFilter) {
-		if (!!this.formGroup) this.formGroup.reset(newValues);
-		this.applyFilter();
+		if (!!this.formGroup) this.formGroup.reset({ ...this.stubFilterStructure, ...newValues });
+		this.applyFilter('reset');
 	}
 
-	protected applyFilter(): void {
+	protected applyFilter(source: string): void {
+		console.debug('Filter source: ' + source);
 		this.filterChange.emit(this.formGroup.value);
 	}
 

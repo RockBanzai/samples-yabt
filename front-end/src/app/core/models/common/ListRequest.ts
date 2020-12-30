@@ -1,8 +1,8 @@
-import { OrderDirections } from './OrderDirections';
+import { SortDirection } from '@angular/material/sort';
 
 export class ListRequest {
 	orderBy: string = '';
-	orderDirection: keyof typeof OrderDirections = OrderDirections.asc;
+	orderDirection: SortDirection = 'asc';
 	pageIndex: number = 0;
 	pageSize: number = 0;
 
